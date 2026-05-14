@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1440"/>
+<title>AppLens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/tokens.css"/>
+<link rel="stylesheet" href="/layout.css"/>
+<style>
+  #al-loading {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 100vh; gap: 16px;
+    background: var(--bg-page);
+    color: var(--text-subdued);
+    font-family: var(--font-sans);
+    font-size: 14px;
+  }
+  #al-loading svg { animation: spin 1s linear infinite; }
+  #al-loading .al-load-label { margin-top: 8px; }
+  #al-error {
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 100vh; gap: 12px; text-align: center; padding: 40px;
+    background: var(--bg-page); font-family: var(--font-sans);
+  }
+  #al-error h2 { font-size: 18px; font-weight: 600; margin: 0; color: var(--text-primary); }
+  #al-error p  { font-size: 13.5px; color: var(--text-subdued); max-width: 400px; margin: 0; line-height: 1.6; }
+  #al-error a  { color: var(--text-link); }
+  #root { display: none; }
+</style>
+</head>
+<body>
+
+<!-- Loading screen -->
+<div id="al-loading">
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+    <path d="M21 12a9 9 0 1 1-9-9"/>
+  </svg>
+  <span class="al-load-label">Scanning your store…</span>
+</div>
+
+<!-- Error screen -->
+<div id="al-error">
+  <h2>AppLens couldn't load</h2>
+  <p id="al-error-msg">Something went wrong. Please try reinstalling or contact support.</p>
+  <a href="javascript:location.reload()">Retry</a>
+</div>
+
+<!-- App root -->
+<div id="root"></div>
+
+<!-- React + Babel (loaded before app scripts) -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js"
+        integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L"
+        crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"
+        integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm"
+        crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"
+        integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y"
+        crossorigin="anonymous"></script>
+
+<!-- Shopify App Bridge (session tokens + embedded app utilities) -->
+<script src="https://unpkg.com/@shopify/app-bridge@3/umd/index.js"></script>
+
+<script>
+// ── Bootstrap: fetch live data, then load JSX components ─────────────────────
+(async () => {
+  const params   = new URLSearchParams(location.search);
+  const shop     = params.get('shop');
+  const host     = params.get('host');
+  const apiKey   = '__SHOPIFY_API_KEY__';  // injected by server.js
+
+  // Helper: show error UI
+  function showError(msg) {
+    document.getElementById('al-loading').style.display = 'none';
+    const err = document.getElementById('al-error');
+    err.style.display = 'flex';
+    document.getElementById('al-error-msg').textContent = msg;
+  }
+
+  // ── 1. Get session token from App Bridge (if inside Shopify admin) ──────────
+  let sessionToken = null;
+  try {
+    if (window['@shopify/app-bridge'] && host && apiKey && apiKey !== '__SHOPIFY_API_KEY__') {
+      const AB = window['@shopify/app-bridge'];
+      const app = AB.createApp({ apiKey, host, forceRedirect: true });
+      sessionToken = await AB.actions.SessionToken.getSessionToken(app);
+    }
+  } catch (e) {
+    console.warn('[AppLens] App Bridge unavailable (dev mode?):', e.message);
+  }
+
+  // ── 2. Fetch scan data from backend ─────────────────────────────────────────
+  const headers = {};
+  if (sessionToken) headers['Authorization'] = `Bearer ${sessionToken}`;
+
+  let scanData;
+  try {
+    const url = shop ? `/api/data?shop=${encodeURIComponent(shop)}` : '/api/data';
+    const res = await fetch(url, { headers });
+
+    if (res.status === 401) {
+      const body = await res.json().catch(() => ({}));
+      if (body.redirectTo) { location.href = body.redirectTo; return; }
+      showError('Session expired. Please refresh or reinstall AppLens.');
+      return;
+    }
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      showError(body.error || `Server error (${res.status})`);
+      return;
+    }
+    scanData = await res.json();
+  } catch (e) {
+    showError(`Network error: ${e.message}`);
+    return;
+  }
+
+  // ── 3. Set global data (read by JSX screen components) ───────────────────────
+  window.AppLensData = scanData;
+  window.AppLensShop = shop;
+  window.AppLensHost = host;
+  window.AppLensApiKey = apiKey;
+
+  // ── 4. Load JSX files sequentially via fetch + Babel.transform ───────────────
+  async function loadJSX(src) {
+    const res = await fetch(src);
+    const code = await res.text();
+    const result = Babel.transform(code, {
+      presets: ['react'],
+      filename: src,
+    });
+    // eslint-disable-next-line no-eval
+    eval(result.code);
+  }
+
+  try {
+    await loadJSX('/ui.jsx');
+    await loadJSX('/screens-a.jsx');
+    await loadJSX('/screens-b.jsx');
+    await loadJSX('/screens-c.jsx');
+  } catch (e) {
+    showError(`Failed to load UI: ${e.message}`);
+    return;
+  }
+
+  // ── 5. Mount the React Shell ──────────────────────────────────────────────────
+  const D = window.AppLensData;
+
+  const shellCode = `
+const D = window.AppLensData;
+
+const Shell = () => {
+  const [tab, setTab] = React.useState('overview');
+  const [theme, setTheme] = React.useState(() =>
+    document.documentElement.getAttribute('data-theme') ||
+    (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+  const [scanning, setScanning] = React.useState(false);
+  const [data, setData] = React.useState(D);
+
+  React.useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
+  const runScan = async () => {
+    if (scanning) return;
+    setScanning(true);
+    try {
+      const shop = window.AppLensShop;
+      const headers = {};
+      // Refresh session token if App Bridge available
+      try {
+        if (window['@shopify/app-bridge'] && window.AppLensHost && window.AppLensApiKey) {
+          const AB = window['@shopify/app-bridge'];
+          const app = AB.createApp({ apiKey: window.AppLensApiKey, host: window.AppLensHost });
+          const tok = await AB.actions.SessionToken.getSessionToken(app);
+          headers['Authorization'] = 'Bearer ' + tok;
+        }
+      } catch {}
+      const res = await fetch('/api/scan' + (shop ? '?shop=' + encodeURIComponent(shop) : ''), {
+        method: 'POST', headers
+      });
+      if (res.ok) {
+        const fresh = await res.json();
+        window.AppLensData = fresh;
+        setData(fresh);
+      }
+    } catch (e) {
+      console.error('Scan failed:', e);
+    }
+    setScanning(false);
+  };
+
+  const Screen = {
+    overview: Overview, installed: Installed, performance: Performance,
+    orphaned: Orphaned, actionplan: ActionPlan, costs: Costs,
+    theme: Theme, reports: Reports,
+  }[tab] || Overview;
+
+  return (
+    <div className="applens-shell" data-screen-label={'AppLens · ' + tab}>
+      <header className="topbar">
+        <div className="col">
+          <div className="crumb">
+            <span className="crumb-link">Apps</span><span className="sep">/</span>
+            <span className="crumb-link">AppLens</span>
+          </div>
+          <div className="row gap-3" style={{marginTop:2, alignItems:'baseline'}}>
+            <h1 className="page-title">{data.store.name}</h1>
+            <span className="muted" style={{fontSize:'var(--fs-body-sm)'}}>
+              <I.globe size={11} style={{verticalAlign:-2, marginRight:4}}/>
+              {data.store.domain} · {data.store.theme}
+            </span>
+          </div>
+        </div>
+        <div className="row gap-3">
+          <div className="col" style={{alignItems:'flex-end'}}>
+            <span className="muted" style={{fontSize:'var(--fs-caption)'}}>Last scanned</span>
+            <span className="tnum" style={{fontSize:'var(--fs-body-sm)', fontWeight:'var(--fw-medium)'}}>
+              {scanning ? React.createElement(React.Fragment, null, React.createElement(I.spinner, {size:11, style:{verticalAlign:-2, marginRight:4}}), 'Scanning…') : data.store.scannedAt}
+            </span>
+          </div>
+          <div className="segmented">
+            <button className={theme==='light'?'on':''} onClick={()=>setTheme('light')} title="Light">
+              <I.sun size={13}/>
+            </button>
+            <button className={theme==='dark'?'on':''} onClick={()=>setTheme('dark')} title="Dark">
+              <I.moon size={13}/>
+            </button>
+          </div>
+          <button className="btn btn-secondary btn-sm" onClick={runScan}>
+            <I.refresh size={13}/>Refresh
+          </button>
+          <button className="btn btn-primary btn-sm" onClick={runScan}>
+            <I.play size={11}/>Run new scan
+          </button>
+        </div>
+      </header>
+
+      <nav className="tabs" role="tablist">
+        {data.tabs.map(t => (
+          <button key={t.id} className={'tab ' + (tab===t.id?'active':'')} onClick={() => setTab(t.id)}>
+            {t.label}
+            {t.count != null && <span className="tab-count tnum">{t.count}</span>}
+          </button>
+        ))}
+      </nav>
+
+      <main className="applens-main">
+        <Screen go={setTab} data={data}/>
+      </main>
+    </div>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(Shell));
+`;
+
+  const shellResult = Babel.transform(shellCode, { presets: ['react'] });
+  // eslint-disable-next-line no-eval
+  eval(shellResult.code);
+
+  // ── 6. Show the app ──────────────────────────────────────────────────────────
+  document.getElementById('al-loading').style.display = 'none';
+  document.getElementById('root').style.display = 'block';
+})();
+</script>
+</body>
+</html>

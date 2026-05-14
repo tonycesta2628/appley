@@ -1,0 +1,21 @@
+{
+  "name": "applens-shopify",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "AppLens — Shopify App Auditor. Identifies performance-killing scripts, orphaned code, duplicate apps, and wasted spend.",
+  "main": "server.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^9.6.0",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "jsonwebtoken": "^9.0.2"
+  }
+}

@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Install AppLens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0;
+    font-family: "Inter", -apple-system, system-ui, sans-serif;
+    background: #f1f1f1;
+    color: #1a1a1a;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+  .card {
+    background: #fff;
+    border: 1px solid #e3e3e3;
+    border-radius: 12px;
+    padding: 40px;
+    max-width: 480px;
+    width: 100%;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  }
+  .logo {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 28px;
+  }
+  .logo-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    background: #1a1a1a;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .logo-name {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+  }
+  h1 { font-size: 18px; font-weight: 600; margin: 0 0 8px; letter-spacing: -0.01em; }
+  p  { font-size: 14px; color: #6d6d6d; line-height: 1.6; margin: 0 0 24px; }
+  .features {
+    display: flex; flex-direction: column; gap: 10px;
+    margin-bottom: 28px;
+    padding: 16px;
+    background: #f8f8f8;
+    border-radius: 8px;
+    border: 1px solid #ebebeb;
+  }
+  .feature {
+    display: flex; gap: 10px; align-items: flex-start;
+    font-size: 13.5px; color: #4a4a4a;
+  }
+  .feature-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #1a1a1a;
+    margin-top: 6px; flex-shrink: 0;
+  }
+  label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+  input {
+    width: 100%; height: 38px; padding: 0 12px;
+    border: 1px solid #d4d4d4;
+    border-radius: 8px;
+    font-size: 14px; font-family: inherit;
+    color: #1a1a1a;
+    background: #fff;
+    margin-bottom: 12px;
+  }
+  input:focus { outline: none; border-color: #005bd3; box-shadow: 0 0 0 3px rgba(0,91,211,0.2); }
+  input.error { border-color: #b8210a; }
+  .err-msg { font-size: 12.5px; color: #b8210a; margin-top: -8px; margin-bottom: 12px; display: none; }
+  .err-msg.show { display: block; }
+  button[type=submit] {
+    width: 100%; height: 38px;
+    background: #1a1a1a; color: #fff;
+    border: none; border-radius: 8px;
+    font-size: 14px; font-weight: 500; font-family: inherit;
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  button[type=submit]:hover { background: #2e2e2e; }
+  .note {
+    margin-top: 20px; font-size: 12.5px; color: #8e8e8e; text-align: center; line-height: 1.5;
+  }
+  .note a { color: #005bd3; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="card">
+    <div class="logo">
+      <div class="logo-icon">AL</div>
+      <span class="logo-name">AppLens</span>
+    </div>
+
+    <h1>Install AppLens on your store</h1>
+    <p>The Shopify App Auditor — identifies performance-killing scripts, orphaned code, duplicate apps, and wasted subscription spend.</p>
+
+    <div class="features">
+      <div class="feature"><span class="feature-dot"></span>Scan theme.liquid for orphaned &amp; duplicate scripts</div>
+      <div class="feature"><span class="feature-dot"></span>Waterfall chart showing which app loads when</div>
+      <div class="feature"><span class="feature-dot"></span>Cost &amp; usage analysis with cancellation recommendations</div>
+      <div class="feature"><span class="feature-dot"></span>Safe cleanup workflow with one-click rollback</div>
+      <div class="feature"><span class="feature-dot"></span>Automated reports sent to your team</div>
+    </div>
+
+    <form id="install-form">
+      <label for="shop">Your Shopify store domain</label>
+      <input
+        type="text"
+        id="shop"
+        name="shop"
+        placeholder="your-store.myshopify.com"
+        autocomplete="off"
+        autocapitalize="none"
+        spellcheck="false"
+      />
+      <div class="err-msg" id="err-msg">Enter a valid *.myshopify.com domain</div>
+      <button type="submit">Install AppLens →</button>
+    </form>
+
+    <p class="note">
+      You'll be redirected to Shopify to approve the required permissions.<br>
+      AppLens only reads your theme &amp; script data — it never modifies anything without your approval.
+    </p>
+  </div>
+</div>
+
+<script>
+document.getElementById('install-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  let shop = document.getElementById('shop').value.trim().toLowerCase();
+  shop = shop.replace(/^https?:\/\//, '').replace(/\/$/, '');
+
+  const input = document.getElementById('shop');
+  const errMsg = document.getElementById('err-msg');
+
+  if (!/^[a-z0-9][a-z0-9-]*\.myshopify\.com$/.test(shop)) {
+    input.classList.add('error');
+    errMsg.classList.add('show');
+    return;
+  }
+
+  input.classList.remove('error');
+  errMsg.classList.remove('show');
+  location.href = `/auth?shop=${encodeURIComponent(shop)}`;
+});
+</script>
+</body>
+</html>

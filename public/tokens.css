@@ -1,0 +1,599 @@
+/* ============================================================
+   AppLens — Polaris-inspired token system
+   Light is default. Add data-theme="dark" to flip surfaces.
+   ============================================================ */
+
+:root {
+  /* Typography */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Type scale */
+  --fs-display:  30px;
+  --fs-h1:       22px;
+  --fs-h2:       17px;
+  --fs-h3:       15px;
+  --fs-body:     13.5px;
+  --fs-body-sm:  12.5px;
+  --fs-caption:  11.5px;
+  --fs-micro:    10.5px;
+
+  /* Weight */
+  --fw-regular: 420;
+  --fw-medium:  540;
+  --fw-semibold: 620;
+  --fw-bold:    720;
+
+  /* Radii */
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-pill: 999px;
+
+  /* Spacing scale (Polaris-style 4pt) */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+
+  /* ---------- LIGHT (default — Polaris admin) ---------- */
+  --bg-page:        #f1f1f1;
+  --bg-page-soft:   #f6f6f6;
+  --bg-surface:     #ffffff;
+  --bg-surface-2:   #fafafa;
+  --bg-surface-3:   #f3f3f3;
+  --bg-hover:       #f7f7f7;
+  --bg-pressed:     #ededed;
+  --bg-inverse:     #1a1a1a;
+
+  --border:         #e3e3e3;
+  --border-strong:  #d4d4d4;
+  --border-focus:   #005bd3;
+
+  --text-primary:   #1a1a1a;
+  --text-secondary: #4a4a4a;
+  --text-subdued:   #6d6d6d;
+  --text-disabled:  #a8a8a8;
+  --text-inverse:   #ffffff;
+  --text-link:      #005bd3;
+
+  --action-primary:        #1a1a1a;
+  --action-primary-hover:  #2e2e2e;
+  --action-secondary-bg:   #ffffff;
+  --action-secondary-bd:   #d4d4d4;
+
+  /* Status — soft bg + strong fg pairs */
+  --critical-bg:    #fce5e1;
+  --critical-bg-2:  #fdf0ed;
+  --critical-fg:    #b8210a;
+  --critical-bd:    #f7c2b8;
+
+  --warning-bg:     #fff1c4;
+  --warning-bg-2:   #fff8e0;
+  --warning-fg:     #8a5a00;
+  --warning-bd:     #f0d77a;
+
+  --success-bg:     #cdf2d4;
+  --success-bg-2:   #e6f7ea;
+  --success-fg:     #0c7438;
+  --success-bd:     #a5dab1;
+
+  --info-bg:        #e2eefc;
+  --info-bg-2:      #f0f6fe;
+  --info-fg:        #1463c5;
+  --info-bd:        #b7d3f3;
+
+  --neutral-bg:     #ebebeb;
+  --neutral-fg:     #4a4a4a;
+
+  /* Charts */
+  --chart-critical: #d93535;
+  --chart-warning:  #d98914;
+  --chart-success:  #0c8a4a;
+  --chart-info:     #2363c5;
+  --chart-purple:   #7c4dc4;
+  --chart-grid:     #ececec;
+  --chart-axis:     #b8b8b8;
+
+  /* Sparkline track */
+  --track:          #ececec;
+
+  /* Shadows — Polaris is very restrained */
+  --shadow-xs: 0 1px 0 rgba(0,0,0,0.04);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,0.10);
+
+  --ring-focus: 0 0 0 3px rgba(0,91,211,0.25);
+}
+
+[data-theme="dark"] {
+  --bg-page:        #0d0d0d;
+  --bg-page-soft:   #131313;
+  --bg-surface:     #1a1a1a;
+  --bg-surface-2:   #212121;
+  --bg-surface-3:   #272727;
+  --bg-hover:       #242424;
+  --bg-pressed:     #2c2c2c;
+  --bg-inverse:     #f4f4f4;
+
+  --border:         #2e2e2e;
+  --border-strong:  #3d3d3d;
+  --border-focus:   #4a8eff;
+
+  --text-primary:   #f1f1f1;
+  --text-secondary: #c8c8c8;
+  --text-subdued:   #8e8e8e;
+  --text-disabled:  #5a5a5a;
+  --text-inverse:   #1a1a1a;
+  --text-link:      #6aa7ff;
+
+  --action-primary:        #f1f1f1;
+  --action-primary-hover:  #e0e0e0;
+  --action-secondary-bg:   #2a2a2a;
+  --action-secondary-bd:   #3d3d3d;
+
+  --critical-bg:    #3a1410;
+  --critical-bg-2:  #2a0f0c;
+  --critical-fg:    #ff8b75;
+  --critical-bd:    #5a1d16;
+
+  --warning-bg:     #3b2c08;
+  --warning-bg-2:   #2a1f04;
+  --warning-fg:     #ffc97a;
+  --warning-bd:     #5a4410;
+
+  --success-bg:     #0e2e1c;
+  --success-bg-2:   #0a2014;
+  --success-fg:     #6fdca0;
+  --success-bd:     #1a4a30;
+
+  --info-bg:        #11264a;
+  --info-bg-2:      #0d1a33;
+  --info-fg:        #8fb6ff;
+  --info-bd:        #1d3a6e;
+
+  --neutral-bg:     #2a2a2a;
+  --neutral-fg:     #c8c8c8;
+
+  --chart-critical: #f25a4c;
+  --chart-warning:  #f0a73c;
+  --chart-success:  #4fcb8b;
+  --chart-info:     #6aa7ff;
+  --chart-purple:   #b27ce6;
+  --chart-grid:     #262626;
+  --chart-axis:     #444;
+
+  --track:          #2a2a2a;
+
+  --shadow-xs: 0 1px 0 rgba(0,0,0,0.4);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,0.5);
+
+  --ring-focus: 0 0 0 3px rgba(74,142,255,0.30);
+}
+
+/* ============================================================
+   Resets + base
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-regular);
+  color: var(--text-primary);
+  background: var(--bg-page);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "ss01", "cv11";
+  letter-spacing: -0.005em;
+}
+button { font-family: inherit; }
+
+/* ============================================================
+   Primitives
+   ============================================================ */
+
+/* Card */
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+.card-pad { padding: var(--s-5); }
+.card-pad-lg { padding: var(--s-6); }
+.card-pad-sm { padding: var(--s-4); }
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--s-4) var(--s-5);
+  border-bottom: 1px solid var(--border);
+}
+.card-title {
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-semibold);
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+/* Eyebrow */
+.eyebrow {
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--text-subdued);
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--r-md);
+  border: 1px solid transparent;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-medium);
+  letter-spacing: -0.005em;
+  cursor: pointer;
+  transition: background .12s, border-color .12s, color .12s, box-shadow .12s, transform .06s;
+  white-space: nowrap;
+  user-select: none;
+}
+.btn:active { transform: translateY(0.5px); }
+.btn:focus-visible { outline: none; box-shadow: var(--ring-focus); }
+
+.btn-primary {
+  background: var(--action-primary);
+  color: var(--text-inverse);
+}
+.btn-primary:hover { background: var(--action-primary-hover); }
+
+.btn-secondary {
+  background: var(--action-secondary-bg);
+  color: var(--text-primary);
+  border-color: var(--action-secondary-bd);
+}
+.btn-secondary:hover { background: var(--bg-hover); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-primary);
+}
+.btn-ghost:hover { background: var(--bg-hover); }
+
+.btn-critical {
+  background: var(--critical-fg);
+  color: #fff;
+}
+.btn-critical:hover { filter: brightness(0.94); }
+
+.btn-sm { height: 26px; padding: 0 10px; font-size: var(--fs-body-sm); }
+.btn-xs { height: 22px; padding: 0 8px; font-size: var(--fs-caption); border-radius: var(--r-sm); }
+
+/* Badges (Polaris pills) */
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: var(--r-pill);
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-medium);
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+.badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.badge-critical { background: var(--critical-bg); color: var(--critical-fg); }
+.badge-warning  { background: var(--warning-bg);  color: var(--warning-fg);  }
+.badge-success  { background: var(--success-bg);  color: var(--success-fg);  }
+.badge-info     { background: var(--info-bg);     color: var(--info-fg);     }
+.badge-neutral  { background: var(--neutral-bg);  color: var(--neutral-fg);  }
+
+.badge-outline {
+  background: transparent;
+  border-color: var(--border-strong);
+  color: var(--text-secondary);
+}
+
+/* Kbd */
+.kbd {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 18px; height: 18px; padding: 0 5px;
+  border: 1px solid var(--border-strong);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: var(--bg-surface);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-secondary);
+}
+
+/* Mono path */
+.mono {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  letter-spacing: -0.01em;
+}
+
+/* Divider */
+.hr { height: 1px; background: var(--border); border: 0; margin: 0; }
+
+/* Focus ring for interactive non-button */
+.focusable:focus-visible { outline: none; box-shadow: var(--ring-focus); }
+
+/* ============================================================
+   App layout pieces
+   ============================================================ */
+
+.applens-shell {
+  min-height: 100vh;
+  background: var(--bg-page);
+  color: var(--text-primary);
+}
+
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--s-4) var(--s-6);
+  gap: var(--s-4);
+  background: var(--bg-page);
+  position: sticky; top: 0; z-index: 10;
+}
+
+.crumb {
+  font-size: var(--fs-body-sm);
+  color: var(--text-subdued);
+}
+.crumb a, .crumb .crumb-link { color: inherit; text-decoration: none; cursor: pointer; }
+.crumb a:hover { color: var(--text-secondary); text-decoration: underline; }
+.crumb .sep { margin: 0 6px; opacity: 0.5; }
+.page-title {
+  font-size: var(--fs-h1);
+  font-weight: var(--fw-semibold);
+  letter-spacing: -0.015em;
+  margin: 2px 0 0;
+}
+
+.tabs {
+  display: flex;
+  gap: 2px;
+  padding: 0 var(--s-6);
+  background: var(--bg-page);
+  border-bottom: 1px solid var(--border);
+}
+.tab {
+  position: relative;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 10px 12px;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-medium);
+  color: var(--text-secondary);
+  cursor: pointer;
+  border: 0;
+  background: transparent;
+  border-radius: 6px 6px 0 0;
+  letter-spacing: -0.005em;
+}
+.tab:hover { color: var(--text-primary); background: var(--bg-hover); }
+.tab.active { color: var(--text-primary); }
+.tab.active::after {
+  content: ""; position: absolute; left: 8px; right: 8px; bottom: -1px;
+  height: 2px; background: var(--text-primary); border-radius: 2px 2px 0 0;
+}
+.tab .tab-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 18px; height: 18px; padding: 0 5px;
+  border-radius: var(--r-pill);
+  background: var(--bg-surface-3);
+  color: var(--text-subdued);
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-medium);
+}
+.tab.active .tab-count { background: var(--bg-inverse); color: var(--text-inverse); }
+
+/* ============================================================
+   Score ring (SVG)
+   ============================================================ */
+.score-ring { display: inline-block; position: relative; }
+.score-ring svg { display: block; }
+.score-ring-num {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+.score-ring-num span.small { display:block; font-size: var(--fs-caption); font-weight: var(--fw-medium); color: var(--text-subdued); margin-top: 2px; letter-spacing: 0; }
+
+/* ============================================================
+   Mini bars (used in tables and sparkline cells)
+   ============================================================ */
+.bar {
+  position: relative;
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: var(--track);
+  overflow: hidden;
+}
+.bar > i {
+  display: block; height: 100%;
+  border-radius: inherit;
+  background: var(--chart-critical);
+}
+
+/* ============================================================
+   Tables
+   ============================================================ */
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--fs-body);
+}
+.table th {
+  text-align: left;
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-subdued);
+  padding: 10px var(--s-4);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-surface-2);
+  position: sticky; top: 0;
+}
+.table td {
+  padding: 12px var(--s-4);
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+  color: var(--text-primary);
+}
+.table tr:last-child td { border-bottom: 0; }
+.table tr.row-clickable { cursor: pointer; }
+.table tr.row-clickable:hover td { background: var(--bg-hover); }
+
+/* App "icon" tile */
+.app-tile {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px;
+  border-radius: var(--r-md);
+  font-weight: var(--fw-bold);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  flex: 0 0 auto;
+}
+
+/* ============================================================
+   Stat tiles
+   ============================================================ */
+.stat {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: var(--s-4);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--bg-surface);
+}
+.stat-label {
+  font-size: var(--fs-caption);
+  color: var(--text-subdued);
+  font-weight: var(--fw-medium);
+  letter-spacing: 0.02em;
+}
+.stat-value {
+  font-size: 26px;
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.025em;
+  color: var(--text-primary);
+  line-height: 1.05;
+}
+.stat-delta {
+  font-size: var(--fs-caption);
+  color: var(--text-subdued);
+  display: inline-flex; align-items: center; gap: 4px;
+}
+
+/* ============================================================
+   Banner
+   ============================================================ */
+.banner {
+  display: flex; align-items: flex-start; gap: var(--s-3);
+  padding: var(--s-4) var(--s-5);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+}
+.banner-critical { background: var(--critical-bg-2); border-color: var(--critical-bd); }
+.banner-warning  { background: var(--warning-bg-2);  border-color: var(--warning-bd);  }
+.banner-success  { background: var(--success-bg-2);  border-color: var(--success-bd);  }
+.banner-info     { background: var(--info-bg-2);     border-color: var(--info-bd);     }
+
+.banner-icon {
+  width: 20px; height: 20px;
+  flex: 0 0 auto;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  margin-top: 1px;
+}
+
+/* ============================================================
+   Toggle / segmented
+   ============================================================ */
+.segmented {
+  display: inline-flex;
+  padding: 2px;
+  background: var(--bg-surface-3);
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+}
+.segmented button {
+  border: 0; background: transparent;
+  padding: 4px 10px;
+  font-size: var(--fs-body-sm);
+  font-weight: var(--fw-medium);
+  color: var(--text-secondary);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+}
+.segmented button.on {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-xs);
+}
+
+/* Toolbar input */
+.input {
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border-radius: var(--r-md);
+  font-size: var(--fs-body);
+  font-family: inherit;
+}
+.input:focus { outline: none; border-color: var(--border-focus); box-shadow: var(--ring-focus); }
+
+.search {
+  position: relative;
+  display: inline-flex; align-items: center;
+}
+.search svg { position: absolute; left: 10px; opacity: 0.55; }
+.search input { padding-left: 30px; }
+
+/* ============================================================
+   Scrollbar polish (subtle)
+   ============================================================ */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 10px; border: 2px solid var(--bg-page); }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* ============================================================
+   Utility
+   ============================================================ */
+.row { display: flex; align-items: center; }
+.row.gap-1 { gap: 4px; } .row.gap-2 { gap: 8px; } .row.gap-3 { gap: 12px; } .row.gap-4 { gap: 16px; } .row.gap-6 { gap: 24px; }
+.col { display: flex; flex-direction: column; }
+.between { justify-content: space-between; }
+.center { justify-content: center; align-items: center; }
+.grow { flex: 1 1 auto; min-width: 0; }
+.muted { color: var(--text-subdued); }
+.secondary { color: var(--text-secondary); }
+.semi { font-weight: var(--fw-semibold); }
+.bold { font-weight: var(--fw-bold); }
+.med  { font-weight: var(--fw-medium); }
+.tnum { font-variant-numeric: tabular-nums; }
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hide-narrow { }
+@media (max-width: 1100px) { .hide-narrow { display: none !important; } }

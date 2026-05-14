@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Read(//usr/local/**)",
+      "Read(//opt/homebrew/bin/**)",
+      "Bash(export PATH=\"/Users/tony/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:$PATH\")",
+      "Bash(npm --version)"
+    ]
+  }
+}
